@@ -3,15 +3,16 @@ package popx
 import (
 	"context"
 	"fmt"
+	"net/url"
 	"runtime"
 	"testing"
 
 	"github.com/cockroachdb/cockroach-go/v2/crdb"
-	"github.com/cockroachdb/cockroach-go/v2/testserver"
 	"github.com/gobuffalo/pop/v6"
 	"github.com/stretchr/testify/require"
 
 	"github.com/ory/x/sqlcon"
+	"github.com/ory/x/sqlcon/dockertest"
 )
 
 func newDB(t *testing.T) *pop.Connection {
@@ -19,11 +20,8 @@ func newDB(t *testing.T) *pop.Connection {
 		t.Skip("CockroachDB test suite does not support windows")
 	}
 
-	ts, err := testserver.NewTestServer()
+	dsn, err := url.Parse(dockertest.RunTestCockroachDB(t))
 	require.NoError(t, err)
-
-	dsn := ts.PGURL()
-	dsn.Scheme = "cockroach:"
 	q := dsn.Query()
 	q.Set("search_path", "d,public")
 	dsn.RawQuery = q.Encode()
